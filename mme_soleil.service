@@ -1,0 +1,15 @@
+[Unit]
+Description = Solar production prediction service
+After = network-online.target
+Wants = network-online.target
+
+[Service]
+User = pi
+Group = pi
+Type = simple
+ExecStart = /opt/mme_soleil/mme_soleil.sh
+Restart = always
+RestartSec = 10
+
+[Install]
+WantedBy = multi-user.target
