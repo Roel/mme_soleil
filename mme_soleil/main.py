@@ -24,7 +24,6 @@ from quart_auth import QuartAuth
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from config import Config
-from db.base import Database
 
 from services.weather import WeatherService
 from services.solar import SolarService
@@ -45,7 +44,6 @@ app = Quart(__name__)
 app.config.from_object(Config)
 app.secret_key = app.config['SECRET_KEY']
 
-app.db = Database(app)
 app.auth = QuartAuth(app)
 
 

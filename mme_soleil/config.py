@@ -85,5 +85,3 @@ class Config:
     SOLAR_ARRAY2_AZIMUTH = int(os.environ.get('SOLAR_ARRAY2_AZIMUTH'))
     SOLAR_ARRAY2_HEIGHT = int(os.environ.get('SOLAR_ARRAY2_HEIGHT'))
     SOLAR_ARRAY2_MODULECOUNT = int(os.environ.get('SOLAR_ARRAY2_MODULECOUNT'))
-
-    DATABASE_PATH = os.environ.get('SQLITE_DB_PATH')
