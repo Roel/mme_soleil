@@ -191,6 +191,12 @@ class SolarService:
     async def get_production_peak(self, end, peak_duration, order, precision, start=None, min_kwh=None, min_temp=None):
         if order not in ['first', 'last']:
             raise ValueError('order should be "first" or "last"')
+        else:
+            order = {
+                'first': 0,
+                'last': -1
+            }.get(order)
+
 
         if start is None:
             start = datetime.datetime.now()
@@ -202,57 +208,68 @@ class SolarService:
             window_size=int(peak_duration.total_seconds()//300))
 
         df_ac = await self.get_production_wh(start, end + peak_duration)
+        df_ac = df_ac.merge(self.weather, left_index=True, right_index=True)
+
         df_ac['ac_kWh_rolling'] = df_ac.ac_Wh.rolling(
             window=indexer).sum() / 1000
-
-        order_index = {
-            'first': 0,
-            'last': -1
-        }
+        df_ac['temp_air_rolling'] = df_ac.temp_air.rolling(
+            window=indexer).mean()
 
         if min_kwh is not None:
             result = df_ac[df_ac['ac_kWh_rolling'] >= min_kwh].sort_index()
             if result.size > 0 and min_temp is None:
-                return result.iloc[order_index.get(order)].name.to_pydatetime()
+                return result.iloc[order].name.to_pydatetime()
             elif result.size > 0 and min_temp is not None:
-                result = result.merge(
-                    self.weather, left_index=True, right_index=True)
-
-                candidate = result.iloc[order_index.get(order)]
+                candidate = result.iloc[order]
                 if candidate.temp_air < min_temp:
                     candidates_temp = result[result.temp_air >= min_temp]
                     if len(candidates_temp) > 0:
-                        candidate = candidates_temp.iloc[order_index.get(
-                            order)]
+                        candidate = candidates_temp.iloc[order]
 
                 if candidate.temp_air >= min_temp:
                     return candidate.name.to_pydatetime()
 
-        df_ac['ac_kWh_rolling'] = df_ac.ac_kWh_rolling.round(precision)
+        df_ac['ac_kWh_rolling_rounded'] = df_ac.ac_kWh_rolling.round(precision)
+        df_ac['temp_air_rolling_rounded'] = df_ac.temp_air_rolling.round(
+            precision)
 
-        result = df_ac[df_ac['ac_kWh_rolling'] ==
-                       df_ac['ac_kWh_rolling'].max()].sort_index()
+        result_solar = df_ac[df_ac['ac_kWh_rolling_rounded'] ==
+                             df_ac['ac_kWh_rolling_rounded'].max()].sort_index()
 
-        if result.size == 1:
-            return result.iloc[0].name.to_pydatetime()
-        elif result.size > 1 and min_temp is not None:
-            result = result.merge(
-                self.weather, left_index=True, right_index=True)
+        result_temp = df_ac[df_ac['temp_air_rolling_rounded'] ==
+                            df_ac['temp_air_rolling_rounded'].max()].sort_index()
 
-            candidate = result.iloc[order_index.get(order)]
-            if candidate.temp_air < min_temp:
-                candidates_temp = result[result.temp_air >= min_temp]
-                if len(candidates_temp) > 0:
-                    candidate = candidates_temp.iloc[order_index.get(order)]
+        candidate_solar = result_solar.iloc[order]
+        candidate_temp = result_temp.iloc[order]
 
-            return candidate.name.to_pydatetime()
-        elif result.size > 1 and min_temp is None:
-            return result.iloc[order_index.get(order)].name.to_pydatetime()
+        if min_kwh is not None and candidate_solar.ac_kWh_rolling < 0.25 * min_kwh:
+            # not sunny, use peak temp
+
+            if min_temp is not None:
+                return candidate_temp.name.to_pydatetime()
+            else:
+                return candidate_solar.name.to_pydatetime()
+        elif min_kwh is not None and candidate_solar.ac_kWh_rolling < 0.75 * min_kwh:
+            # partially sunny, second peak on temp
+
+            if min_temp is not None:
+                result_solar_temp = result_solar[result_solar['temp_air_rolling_rounded'] ==
+                                                 result_solar['temp_air_rolling_rounded'].max()].sort_index()
+                return result_solar_temp.iloc[order].name.to_pydatetime()
+            else:
+                return candidate_solar.name.to_pydatetime()
         else:
-            if order == 'first':
-                return start
-            elif order == 'last':
-                return end
+            # sunny, second peak on temp if too cold
+
+            if min_temp is not None and candidate_solar.temp_air_rolling < min_temp:
+                result_solar_temp = result_solar[result_solar['temp_air_rolling_rounded'] ==
+                                                 result_solar['temp_air_rolling_rounded'].max()].sort_index()
+                if result_solar_temp.size >= 1:
+                    return result_solar_temp.iloc[order].name.to_pydatetime()
+                else:
+                    return candidate_solar.name.to_pydatetime()
+            else:
+                return candidate_solar.name.to_pydatetime()
 
     async def get_production_bounds(self, date, min_kw=0):
         start_period = datetime.datetime(
