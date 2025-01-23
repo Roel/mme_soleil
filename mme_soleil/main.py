@@ -30,6 +30,7 @@ from services.solar import SolarService
 
 from blueprints.api import api
 from blueprints.grafana import grafana
+from blueprints.status import status
 
 
 class Services:
@@ -49,8 +50,6 @@ app.auth = QuartAuth(app)
 
 @app.before_serving
 async def startup():
-    await app.db.migrate()
-
     loop = asyncio.get_event_loop()
 
     app.scheduler = AsyncIOScheduler(event_loop=loop)
@@ -64,6 +63,7 @@ async def startup():
 
     app.register_blueprint(grafana, url_prefix='/grafana')
     app.register_blueprint(api, url_prefix='/api')
+    app.register_blueprint(status, url_prefix='/status')
 
 
 @app.after_serving

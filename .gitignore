@@ -1,1 +1,8 @@
-environment.env
+__pycache__
+
+.venv
+
+environment*.env
+docker/secrets*
+
+*.local.sh

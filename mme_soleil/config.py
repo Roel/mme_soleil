@@ -19,6 +19,15 @@ from dataclasses import dataclass
 import os
 
 
+def read_secret(variable_name):
+    if f'{variable_name}_FILE' in os.environ:
+        with open(os.environ.get(f'{variable_name}_FILE'), 'r') as secret_file:
+            secret = secret_file.read()
+    else:
+        secret = os.environ.get(variable_name, None)
+    return secret
+
+
 @dataclass
 class SolarInverter:
     Name: str = 'Huawei SUN2000-4.6KTL-L1'
@@ -66,7 +75,7 @@ class SolarPanel:
 class Config:
     QUART_AUTH_MODE = 'bearer'
     QUART_AUTH_BASIC_USERNAME = 'admin'
-    QUART_AUTH_BASIC_PASSWORD = os.environ.get('API_ADMIN_PASS')
+    QUART_AUTH_BASIC_PASSWORD = read_secret('API_ADMIN_PASS')
 
     LOCATION_LAT = float(os.environ.get('LOCATION_LAT'))
     LOCATION_LON = float(os.environ.get('LOCATION_LON'))

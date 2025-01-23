@@ -1,0 +1,18 @@
+services:
+  mme_soleil:
+    image: mme_soleil:latest
+    build:
+      context: ..
+      dockerfile: docker/mme_soleil/Dockerfile
+    env_file:
+      - ../environment.docker.env
+    secrets:
+      - api_admin_pass
+    ports:
+      - 8001:8080
+
+secrets:
+  api_admin_pass:
+    file: ./secrets/API_ADMIN_PASS
+  influx_password:
+    file: ./secrets/INFLUX_PASSWORD

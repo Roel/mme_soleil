@@ -81,8 +81,8 @@ class OpenMeteoClient:
         meteo_df_15m = meteo_df_15m[meteo_df_15m.index.notnull()]
 
         meteo_df = pd.merge(
-            left=meteo_df_60m.resample('5T').interpolate('pchip'),
-            right=meteo_df_15m.resample('5T').interpolate('pchip'),
+            left=meteo_df_60m.resample('5min').interpolate('pchip'),
+            right=meteo_df_15m.resample('5min').interpolate('pchip'),
             left_index=True,
             right_index=True
         )
