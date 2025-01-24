@@ -171,7 +171,7 @@ class SolarService:
 
         df_ac = await self.get_production_wh(start_period, end_period)
         df_ac['ac_hourly_kWh'] = df_ac.ac_Wh.groupby(
-            pd.Grouper(freq='1H')).sum() / 1000
+            pd.Grouper(freq='1h')).sum() / 1000
 
         return df_ac[['ac_hourly_kWh']][df_ac.ac_hourly_kWh > 0][
             start.strftime(_PD_TIMEFORMAT): end.strftime(_PD_TIMEFORMAT)].dropna()
