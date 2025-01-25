@@ -239,10 +239,18 @@ class SolarService:
         result_temp = df_ac[df_ac['temp_air_rolling_rounded'] ==
                             df_ac['temp_air_rolling_rounded'].max()].sort_index()
 
-        candidate_solar = result_solar.iloc[order]
-        candidate_temp = result_temp.iloc[order]
+        candidate_solar = result_solar.iloc[order] if len(
+            result_solar) > 0 else None
+        candidate_temp = result_temp.iloc[order] if len(
+            result_temp) > 0 else None
 
-        if min_kwh is not None and candidate_solar.ac_kWh_rolling < 0.25 * min_kwh:
+        if candidate_solar is None and candidate_temp is None:
+            # this shouldn't happen, but fallback to bounds
+            return [start, end][order]
+        elif candidate_solar is None:
+            # no sun at all, use peak temp
+            return candidate_temp.name.to_pydatetime()
+        elif min_kwh is not None and candidate_solar.ac_kWh_rolling < 0.25 * min_kwh:
             # not sunny, use peak temp
 
             if min_temp is not None:
