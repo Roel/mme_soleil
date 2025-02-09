@@ -66,6 +66,9 @@ class WeatherService:
 
         df_temp['time'] = pd.to_datetime(df_temp.index)
 
+        if len(df_temp) == 0:
+            return None
+
         return TimePeriodStatsDto(
             start=df_temp.time.min().astimezone(pytz.timezone('Europe/Brussels')),
             end=df_temp.time.max().astimezone(pytz.timezone('Europe/Brussels')),

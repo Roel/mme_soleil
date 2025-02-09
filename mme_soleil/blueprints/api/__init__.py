@@ -138,15 +138,19 @@ async def get_temperature_stats():
 
     if len(errors) == 0:
         result = await app.services.weather.get_temperature_stats(start, end)
-        return {
-            'start': result.start.isoformat(),
-            'end': result.end.isoformat(),
-            'unit': result.unit,
-            'q25': result.q25,
-            'q50': result.q50,
-            'q75': result.q75,
-            'stddev': result.stddev
-        }
-    else:
-        return {'status': 'error',
-                'errors': errors}, 400
+
+        if result is not None:
+            return {
+                'start': result.start.isoformat(),
+                'end': result.end.isoformat(),
+                'unit': result.unit,
+                'q25': result.q25,
+                'q50': result.q50,
+                'q75': result.q75,
+                'stddev': result.stddev
+            }
+        else:
+            errors.append('No data was found for your request period.')
+
+    return {'status': 'error',
+            'errors': errors}, 400
