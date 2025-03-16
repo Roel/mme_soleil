@@ -15,6 +15,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
+
+import pytz
 from quart import Blueprint, request, current_app as app
 from quart_auth import basic_auth_required
 
@@ -144,8 +146,8 @@ async def get_daily_cumulative_production():
         data = await app.services.solar.get_daily_cumulative_kwh(
             start=start, end=end
         )
-        return {'status': 'ok',
-                'production': data['ac_daily_kWh_cum'].max(),
+        return {'timestamp': end.astimezone(pytz.timezone('Europe/Brussels')).isoformat(),
+                'value': data['ac_daily_kWh_cum'].max(),
                 'unit': 'kWh'}
     else:
         return {'status': 'error',
