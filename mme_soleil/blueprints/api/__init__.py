@@ -122,6 +122,36 @@ async def get_production_weather():
                 'errors': errors}, 400
 
 
+@api.get("/production/daily")
+@basic_auth_required()
+async def get_daily_cumulative_production():
+    errors = []
+
+    default_start = datetime.datetime.combine(
+        datetime.date.today(), datetime.time(0, 0, 0))
+
+    start = request.args.get(
+        'start', default=default_start, type=TYPEFN_DATETIME)
+    end = request.args.get(
+        'end', default=datetime.datetime.now(), type=TYPEFN_DATETIME)
+    if end is None:
+        errors.append('Failed to parse value for parameter: end.')
+
+    if end is not None and end <= start:
+        errors.append('Validation error: end should be greater than start.')
+
+    if len(errors) == 0:
+        data = await app.services.solar.get_daily_cumulative_kwh(
+            start=start, end=end
+        )
+        return {'status': 'ok',
+                'production': data['ac_daily_kWh_cum'].max(),
+                'unit': 'kWh'}
+    else:
+        return {'status': 'error',
+                'errors': errors}, 400
+
+
 @api.get("/temperature/stats")
 @basic_auth_required()
 async def get_temperature_stats():
