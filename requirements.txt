@@ -6,15 +6,15 @@
 #
 aiofiles==25.1.0
     # via quart
-anyio==4.12.0
+anyio==4.12.1
     # via httpx
-apscheduler==3.11.1
+apscheduler==3.11.2
     # via -r requirements.in
 blinker==1.9.0
     # via
     #   flask
     #   quart
-certifi==2025.11.12
+certifi==2026.1.4
     # via
     #   httpcore
     #   httpx
@@ -67,7 +67,7 @@ markupsafe==3.0.3
     #   jinja2
     #   quart
     #   werkzeug
-numpy==2.3.5
+numpy==2.4.1
     # via
     #   h5py
     #   pandas
@@ -95,17 +95,17 @@ quart-auth==0.11.0
     # via -r requirements.in
 requests==2.32.5
     # via pvlib
-scipy==1.16.3
+scipy==1.17.0
     # via pvlib
 six==1.17.0
     # via python-dateutil
-tzdata==2025.2
+tzdata==2025.3
     # via pandas
 tzlocal==5.3.1
     # via apscheduler
-urllib3==2.6.0
+urllib3==2.6.3
     # via requests
-werkzeug==3.1.4
+werkzeug==3.1.5
     # via
     #   flask
     #   quart
